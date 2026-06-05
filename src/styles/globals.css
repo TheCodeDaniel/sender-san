@@ -1,0 +1,93 @@
+@import url('https://fonts.googleapis.com/css2?family=Noto+Serif+JP:wght@400;700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  @font-face {
+    font-family: 'Geist';
+    src: url('https://cdn.jsdelivr.net/npm/geist@1.3.1/dist/fonts/geist-sans/Geist-Regular.woff2') format('woff2');
+    font-weight: 400;
+    font-display: swap;
+  }
+  @font-face {
+    font-family: 'Geist';
+    src: url('https://cdn.jsdelivr.net/npm/geist@1.3.1/dist/fonts/geist-sans/Geist-Medium.woff2') format('woff2');
+    font-weight: 500;
+    font-display: swap;
+  }
+  @font-face {
+    font-family: 'Geist';
+    src: url('https://cdn.jsdelivr.net/npm/geist@1.3.1/dist/fonts/geist-sans/Geist-SemiBold.woff2') format('woff2');
+    font-weight: 600;
+    font-display: swap;
+  }
+  @font-face {
+    font-family: 'Geist';
+    src: url('https://cdn.jsdelivr.net/npm/geist@1.3.1/dist/fonts/geist-sans/Geist-Bold.woff2') format('woff2');
+    font-weight: 700;
+    font-display: swap;
+  }
+
+  html, body {
+    @apply bg-background text-text-primary font-sans;
+    min-height: 100vh;
+  }
+
+  * {
+    box-sizing: border-box;
+  }
+
+  ::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+  ::-webkit-scrollbar-track {
+    background: #0D0D0D;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: #2A2A2A;
+    border-radius: 3px;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: #3A3A3A;
+  }
+}
+
+@layer utilities {
+  .kanji-watermark {
+    font-family: 'Noto Serif JP', serif;
+    font-size: 14rem;
+    opacity: 0.04;
+    position: absolute;
+    user-select: none;
+    pointer-events: none;
+    line-height: 1;
+    font-weight: 700;
+  }
+
+  .transition-smooth {
+    transition: all 200ms ease;
+  }
+
+  .card {
+    @apply bg-surface border border-border rounded-card;
+  }
+
+  .btn-primary {
+    @apply bg-primary text-white px-4 py-2 rounded-card font-medium transition-smooth hover:opacity-90 active:opacity-80 disabled:opacity-40 disabled:cursor-not-allowed;
+  }
+
+  .btn-ghost {
+    @apply border border-border text-text-primary px-4 py-2 rounded-card font-medium transition-smooth hover:border-text-muted active:opacity-80 disabled:opacity-40 disabled:cursor-not-allowed bg-transparent;
+  }
+
+  .input-base {
+    @apply bg-surface border border-border rounded-card px-3 py-2 text-text-primary placeholder-text-muted transition-smooth focus:outline-none focus:border-primary w-full;
+  }
+
+  .nav-active {
+    @apply text-primary border-b-2 border-primary;
+  }
+}
