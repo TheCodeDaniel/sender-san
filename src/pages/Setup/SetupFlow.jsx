@@ -1,7 +1,7 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useProfile } from '../../context/ProfileContext.jsx'
-import { setKeys, setMeta } from '../../db/indexeddb.js'
+import { setKeys, setMeta, getSetupDraft, setSetupDraft, clearSetupDraft } from '../../db/indexeddb.js'
 import Step1Upload from './Step1Upload.jsx'
 import Step2Links from './Step2Links.jsx'
 import Step3Analysis from './Step3Analysis.jsx'
@@ -17,10 +17,23 @@ export default function SetupFlow() {
   const [data, setData] = useState({})
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
+  const [draftLoaded, setDraftLoaded] = useState(false)
+
+  useEffect(() => {
+    getSetupDraft()
+      .then(draft => {
+        if (draft?.data) setData(draft.data)
+        if (typeof draft?.step === 'number') setStep(draft.step)
+      })
+      .finally(() => setDraftLoaded(true))
+  }, [])
 
   const next = (updates) => {
-    setData(d => ({ ...d, ...updates }))
-    setStep(s => s + 1)
+    const newData = { ...data, ...updates }
+    setData(newData)
+    const newStep = step + 1
+    setStep(newStep)
+    setSetupDraft({ step: newStep, data: newData })
   }
 
   const back = () => setStep(s => s - 1)
@@ -32,6 +45,7 @@ export default function SetupFlow() {
       await saveProfile({ ...data.profile, _raw_cv: data.cvText })
       await setKeys(keys)
       await setMeta({ setup_complete: true })
+      await clearSetupDraft()
       navigate('/', { replace: true })
     } catch (e) {
       setError('Setup failed. Please try again.')
@@ -64,17 +78,41 @@ export default function SetupFlow() {
         <div className="card p-6 relative overflow-hidden">
           <div className="kanji-watermark" style={{ top: '-2rem', right: '-2rem' }}>設定</div>
 
-          {saving ? (
+          {!draftLoaded || saving ? (
             <div className="flex flex-col items-center py-12 gap-4">
               <Spinner size="lg" />
-              <p className="text-text-muted">Saving your profile…</p>
+              <p className="text-text-muted">{saving ? 'Saving your profile…' : 'Loading…'}</p>
             </div>
           ) : (
             <>
-              {step === 0 && <Step1Upload onNext={next} />}
-              {step === 1 && <Step2Links onNext={next} onBack={back} />}
-              {step === 2 && <Step3Analysis data={data} onNext={next} onBack={back} />}
-              {step === 3 && <Step4Keys onNext={complete} onBack={back} prefillGeminiKey={data.tempGeminiKey ?? ''} />}
+              {step === 0 && (
+                <Step1Upload
+                  onNext={next}
+                  initialCvText={data.cvText ?? ''}
+                  initialFileName={data.fileName ?? ''}
+                />
+              )}
+              {step === 1 && (
+                <Step2Links
+                  onNext={next}
+                  onBack={back}
+                  initialForm={data.links ?? null}
+                />
+              )}
+              {step === 2 && (
+                <Step3Analysis
+                  data={data}
+                  onNext={next}
+                  onBack={back}
+                />
+              )}
+              {step === 3 && (
+                <Step4Keys
+                  onNext={complete}
+                  onBack={back}
+                  initialKeys={{ gemini_key: data.tempGeminiKey ?? '' }}
+                />
+              )}
             </>
           )}
 

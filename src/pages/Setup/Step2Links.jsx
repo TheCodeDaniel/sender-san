@@ -7,12 +7,13 @@ const SKILL_SUGGESTIONS = ['JavaScript', 'TypeScript', 'React', 'Flutter', 'Dart
 
 const WORK_TYPES = ['Remote', 'Hybrid', 'On-site']
 
-export default function Step2Links({ onNext, onBack }) {
-  const [form, setForm] = useState({
-    name: '', location: '', github: '', linkedin: '', blog: '', devto: '',
-    experience: '', skills: [], workTypes: [],
-    extras: [],
-  })
+const DEFAULT_FORM = {
+  name: '', location: '', github: '', linkedin: '', blog: '', devto: '',
+  experience: '', skills: [], workTypes: [], extras: [],
+}
+
+export default function Step2Links({ onNext, onBack, initialForm = null }) {
+  const [form, setForm] = useState(initialForm ?? DEFAULT_FORM)
   const [skillInput, setSkillInput] = useState('')
   const [extraLabel, setExtraLabel] = useState('')
   const [extraUrl, setExtraUrl] = useState('')

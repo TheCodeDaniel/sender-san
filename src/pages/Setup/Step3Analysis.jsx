@@ -11,9 +11,9 @@ const LOADING_MESSAGES = [
 ]
 
 export default function Step3Analysis({ data, onNext, onBack }) {
-  const [geminiKey, setGeminiKey] = useState('')
-  const [keySubmitted, setKeySubmitted] = useState(false)
-  const [profile, setProfile] = useState(null)
+  const [geminiKey, setGeminiKey] = useState(data.tempGeminiKey ?? '')
+  const [keySubmitted, setKeySubmitted] = useState(!!data.profile)
+  const [profile, setProfile] = useState(data.profile ?? null)
   const [loading, setLoading] = useState(false)
   const [msgIdx, setMsgIdx] = useState(0)
   const [error, setError] = useState('')
@@ -25,7 +25,7 @@ export default function Step3Analysis({ data, onNext, onBack }) {
   }, [])
 
   useEffect(() => {
-    if (keySubmitted && geminiKey) analyseCV()
+    if (keySubmitted && geminiKey && !profile) analyseCV()
   }, [keySubmitted])
 
   const analyseCV = async () => {
@@ -138,7 +138,7 @@ ${links.extras.map(e => `${e.label}: ${e.url}`).join('\n')}`
         </div>
         <div className="flex justify-between">
           <Button variant="ghost" onClick={onBack}>← Back</Button>
-          <Button disabled={!geminiKey.trim()} onClick={() => setKeySubmitted(true)}>Analyse my CV →</Button>
+          <Button disabled={!geminiKey.trim()} onClick={() => { setLoading(true); setKeySubmitted(true) }}>Analyse my CV →</Button>
         </div>
       </div>
     )
@@ -162,6 +162,8 @@ ${links.extras.map(e => `${e.label}: ${e.url}`).join('\n')}`
       </div>
     )
   }
+
+  if (!profile) return null
 
   return (
     <div>

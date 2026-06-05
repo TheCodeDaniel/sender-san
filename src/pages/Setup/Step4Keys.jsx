@@ -2,8 +2,12 @@ import { useState } from 'react'
 import Input from '../../components/ui/Input.jsx'
 import Button from '../../components/ui/Button.jsx'
 
-export default function Step4Keys({ onNext, onBack, prefillGeminiKey = '' }) {
-  const [keys, setKeys] = useState({ gemini_key: prefillGeminiKey, contactout_key: '', google_client_id: '' })
+export default function Step4Keys({ onNext, onBack, initialKeys = {} }) {
+  const [keys, setKeys] = useState({
+    gemini_key: initialKeys.gemini_key ?? '',
+    contactout_key: initialKeys.contactout_key ?? '',
+    google_client_id: initialKeys.google_client_id ?? '',
+  })
   const [guideOpen, setGuideOpen] = useState(false)
   const [errors, setErrors] = useState({})
 

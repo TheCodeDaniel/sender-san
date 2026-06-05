@@ -23,12 +23,12 @@ async function parseDOCX(file) {
   return result.value
 }
 
-export default function Step1Upload({ onNext }) {
+export default function Step1Upload({ onNext, initialCvText = '', initialFileName = '' }) {
   const [dragging, setDragging] = useState(false)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
-  const [cvText, setCvText] = useState('')
-  const [fileName, setFileName] = useState('')
+  const [cvText, setCvText] = useState(initialCvText)
+  const [fileName, setFileName] = useState(initialFileName)
 
   const processFile = async (file) => {
     if (!file) return
@@ -106,7 +106,7 @@ export default function Step1Upload({ onNext }) {
       {error && <p className="text-primary text-sm mt-3">{error}</p>}
 
       <div className="flex justify-end mt-6">
-        <Button disabled={!cvText} onClick={() => onNext({ cvText })}>
+        <Button disabled={!cvText} onClick={() => onNext({ cvText, fileName })}>
           Next →
         </Button>
       </div>

@@ -120,6 +120,22 @@ export async function updateHistoryEntry(id, updates) {
   await db.put('history', history, 'data')
 }
 
+// SETUP DRAFT
+export async function getSetupDraft() {
+  const db = await getDB()
+  return (await db.get('meta', 'draft')) ?? null
+}
+
+export async function setSetupDraft(draft) {
+  const db = await getDB()
+  await db.put('meta', draft, 'draft')
+}
+
+export async function clearSetupDraft() {
+  const db = await getDB()
+  await db.delete('meta', 'draft')
+}
+
 // WIPE
 export async function wipeAllData() {
   dbPromise = null
