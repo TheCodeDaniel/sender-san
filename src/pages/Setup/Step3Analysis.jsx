@@ -28,12 +28,12 @@ export default function Step3Analysis({ data, onNext, onBack }) {
     if (keySubmitted && geminiKey && !profile) analyseCV()
   }, [keySubmitted])
 
-  const analyseCV = async () => {
+  const analyseCV = async (attempt = 1) => {
     setLoading(true)
     setError('')
     try {
       const genAI = new GoogleGenerativeAI(geminiKey)
-      const model = genAI.getGenerativeModel({ model: 'gemini-1.5-pro' })
+      const model = genAI.getGenerativeModel({ model: 'gemini-2.0-flash' })
 
       const { cvText, links } = data
       const prompt = `You are a professional career analyst. Analyse the provided CV text and platform links. Return ONLY a valid JSON object matching the schema below. No markdown, no explanation, no preamble — raw JSON only.
@@ -74,9 +74,23 @@ ${links.extras.map(e => `${e.label}: ${e.url}`).join('\n')}`
       const result = await model.generateContent(prompt)
       const text = result.response.text().replace(/```json\n?|\n?```/g, '').trim()
       setProfile(JSON.parse(text))
+      setLoading(false)
     } catch (e) {
-      setError('AI analysis failed. Check your Gemini API key and try again.')
-    } finally {
+      const msg = e?.message ?? ''
+      const isRateLimit = msg.includes('429') || msg.includes('RESOURCE_EXHAUSTED') || msg.includes('Too Many Requests')
+
+      if (isRateLimit && attempt < 4) {
+        const delay = attempt * 15000
+        setError(`Rate limited — retrying in ${delay / 1000}s… (attempt ${attempt}/3)`)
+        setLoading(true)
+        setTimeout(() => analyseCV(attempt + 1), delay)
+        return
+      }
+
+      setError(isRateLimit
+        ? 'Rate limit reached. Wait a minute then click Retry.'
+        : 'AI analysis failed. Check your Gemini API key and try again.'
+      )
       setLoading(false)
     }
   }
@@ -149,7 +163,7 @@ ${links.extras.map(e => `${e.label}: ${e.url}`).join('\n')}`
       <div className="relative min-h-[400px] flex flex-col items-center justify-center">
         <div className="kanji-watermark" style={{ top: '50%', left: '50%', transform: 'translate(-50%, -50%)' }}>分析</div>
         <Spinner size="lg" className="mb-6" />
-        <p className="text-text-primary font-medium">{LOADING_MESSAGES[msgIdx]}</p>
+        <p className="text-text-primary font-medium">{error || LOADING_MESSAGES[msgIdx]}</p>
       </div>
     )
   }

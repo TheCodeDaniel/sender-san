@@ -10,7 +10,7 @@ function stripFences(text) {
 
 export async function generateMissionBrief(apiKey, profile, goalType, goalParams) {
   const genAI = getClient(apiKey)
-  const model = genAI.getGenerativeModel({ model: 'gemini-1.5-pro' })
+  const model = genAI.getGenerativeModel({ model: 'gemini-2.0-flash' })
 
   const prompt = `You are a professional outreach strategist. Based on the developer profile and mission parameters provided, generate a mission brief as a JSON object matching the schema. Return ONLY valid JSON, no markdown, no preamble.
 
@@ -42,12 +42,11 @@ ${JSON.stringify(goalParams, null, 2)}`
 
 export async function discoverCompanies(apiKey, mission, profile, onCompany) {
   const genAI = getClient(apiKey)
+  // googleSearch grounding cannot be combined with function declarations in Gemini 2.0,
+  // so we use function declarations alone (model uses its own knowledge)
   const model = genAI.getGenerativeModel({
-    model: 'gemini-1.5-pro',
+    model: 'gemini-2.0-flash',
     tools: [
-      {
-        googleSearchRetrieval: {},
-      },
       {
         functionDeclarations: [
           {
@@ -71,13 +70,13 @@ export async function discoverCompanies(apiKey, mission, profile, onCompany) {
     ],
   })
 
-  const prompt = `You are a company research agent. Using Google Search, find 100 companies that match this target profile: ${mission.target_profile}.
+  const prompt = `You are a company research agent. Find 100 companies that match this target profile: ${mission.target_profile}.
 
 The developer's profile: ${profile.title}, skills: ${profile.skills?.join(', ')}. ${profile.summary}
 Mission type: ${mission.mission_type}.
 Search keywords: ${mission.search_keywords?.join(', ')}.
 
-For each company found, call the add_company function. Focus on real, active companies. Prioritise companies likely to be actively hiring or needing these services based on recent news, funding, or growth signals.`
+For each company found, call the add_company function. Focus on real, active companies. Prioritise companies likely to be actively hiring or needing these services based on recent funding, growth signals, or tech stack alignment.`
 
   const companies = []
 
@@ -102,7 +101,6 @@ For each company found, call the add_company function. Focus on real, active com
 
       if (!hasFunction || companies.length >= 100) break
 
-      // Send function responses back
       const functionResponses = parts
         .filter(p => p.functionCall?.name === 'add_company')
         .map(p => ({
@@ -133,8 +131,8 @@ For each company found, call the add_company function. Focus on real, active com
 export async function findContacts(apiKey, company, idealRoles) {
   const genAI = getClient(apiKey)
   const model = genAI.getGenerativeModel({
-    model: 'gemini-1.5-pro',
-    tools: [{ googleSearchRetrieval: {} }],
+    model: 'gemini-2.0-flash',
+    tools: [{ googleSearch: {} }],
   })
 
   const prompt = `Search for people at ${company.name} (${company.website}) who match these roles: ${idealRoles.join(', ')}.
@@ -165,7 +163,7 @@ Return as a raw JSON array only (no markdown, no preamble):
 
 export async function generateEmail(apiKey, sender, contact, company, mission) {
   const genAI = getClient(apiKey)
-  const model = genAI.getGenerativeModel({ model: 'gemini-1.5-pro' })
+  const model = genAI.getGenerativeModel({ model: 'gemini-2.0-flash' })
 
   const prompt = `Write a professional outreach email from ${sender.name} to ${contact.name}, ${contact.role} at ${company.name}.
 
