@@ -1,8 +1,10 @@
 import { useState, useEffect } from 'react'
-import { GoogleGenerativeAI } from '@google/generative-ai'
+import Groq from 'groq-sdk'
 import Button from '../../components/ui/Button.jsx'
 import Tag from '../../components/ui/Tag.jsx'
 import Spinner from '../../components/ui/Spinner.jsx'
+
+const MODEL = 'llama-3.3-70b-versatile'
 
 const LOADING_MESSAGES = [
   'Parsing your career history...',
@@ -11,7 +13,7 @@ const LOADING_MESSAGES = [
 ]
 
 export default function Step3Analysis({ data, onNext, onBack }) {
-  const [geminiKey, setGeminiKey] = useState(data.tempGeminiKey ?? '')
+  const [groqKey, setGroqKey] = useState(data.tempGroqKey ?? '')
   const [keySubmitted, setKeySubmitted] = useState(!!data.profile)
   const [profile, setProfile] = useState(data.profile ?? null)
   const [loading, setLoading] = useState(false)
@@ -25,18 +27,17 @@ export default function Step3Analysis({ data, onNext, onBack }) {
   }, [])
 
   useEffect(() => {
-    if (keySubmitted && geminiKey && !profile) analyseCV()
+    if (keySubmitted && groqKey && !profile) analyseCV()
   }, [keySubmitted])
 
   const analyseCV = async (attempt = 1) => {
     setLoading(true)
     setError('')
     try {
-      const genAI = new GoogleGenerativeAI(geminiKey)
-      const model = genAI.getGenerativeModel({ model: 'gemini-2.0-flash' })
-
+      const client = new Groq({ apiKey: groqKey, dangerouslyAllowBrowser: true })
       const { cvText, links } = data
-      const prompt = `You are a professional career analyst. Analyse the provided CV text and platform links. Return ONLY a valid JSON object matching the schema below. No markdown, no explanation, no preamble — raw JSON only.
+
+      const prompt = `You are a professional career analyst. Analyse the provided CV text and personal info. Return ONLY a valid JSON object matching the schema below. No markdown, no explanation, no preamble — raw JSON only.
 
 Schema:
 {
@@ -71,13 +72,17 @@ Blog/Portfolio: ${links.blog || 'N/A'}
 Dev.to: ${links.devto || 'N/A'}
 ${links.extras.map(e => `${e.label}: ${e.url}`).join('\n')}`
 
-      const result = await model.generateContent(prompt)
-      const text = result.response.text().replace(/```json\n?|\n?```/g, '').trim()
+      const res = await client.chat.completions.create({
+        model: MODEL,
+        messages: [{ role: 'user', content: prompt }],
+        temperature: 0.3,
+      })
+      const text = res.choices[0].message.content.replace(/```json\n?|\n?```/g, '').trim()
       setProfile(JSON.parse(text))
       setLoading(false)
     } catch (e) {
       const msg = e?.message ?? ''
-      const isRateLimit = msg.includes('429') || msg.includes('RESOURCE_EXHAUSTED') || msg.includes('Too Many Requests')
+      const isRateLimit = msg.includes('429') || msg.includes('rate_limit') || msg.includes('Too Many Requests')
 
       if (isRateLimit && attempt < 4) {
         const delay = attempt * 15000
@@ -89,7 +94,7 @@ ${links.extras.map(e => `${e.label}: ${e.url}`).join('\n')}`
 
       setError(isRateLimit
         ? 'Rate limit reached. Wait a minute then click Retry.'
-        : 'AI analysis failed. Check your Gemini API key and try again.'
+        : 'AI analysis failed. Check your Groq API key and try again.'
       )
       setLoading(false)
     }
@@ -136,23 +141,23 @@ ${links.extras.map(e => `${e.label}: ${e.url}`).join('\n')}`
     return (
       <div className="space-y-5">
         <h2 className="text-xl font-semibold text-text-primary mb-1">AI Career Analysis</h2>
-        <p className="text-text-muted text-sm">Enter your Gemini API key to analyse your CV. You'll save all keys permanently in the next step.</p>
+        <p className="text-text-muted text-sm">Enter your Groq API key to analyse your CV. You'll save all keys permanently in the next step.</p>
         <div>
-          <label className="block text-sm text-text-muted mb-1">Google AI Studio Key (Gemini)</label>
+          <label className="block text-sm text-text-muted mb-1">Groq API Key</label>
           <input
             type="password"
             className="input-base"
-            value={geminiKey}
-            onChange={e => setGeminiKey(e.target.value)}
-            placeholder="AIza..."
+            value={groqKey}
+            onChange={e => setGroqKey(e.target.value)}
+            placeholder="gsk_..."
           />
           <p className="text-xs text-text-muted mt-1">
-            Get yours at <a href="https://aistudio.google.com" target="_blank" rel="noopener noreferrer" className="text-secondary hover:underline">aistudio.google.com</a>
+            Get yours free at <a href="https://console.groq.com" target="_blank" rel="noopener noreferrer" className="text-secondary hover:underline">console.groq.com</a>
           </p>
         </div>
         <div className="flex justify-between">
           <Button variant="ghost" onClick={onBack}>← Back</Button>
-          <Button disabled={!geminiKey.trim()} onClick={() => { setLoading(true); setKeySubmitted(true) }}>Analyse my CV →</Button>
+          <Button disabled={!groqKey.trim()} onClick={() => { setLoading(true); setKeySubmitted(true) }}>Analyse my CV →</Button>
         </div>
       </div>
     )
@@ -238,7 +243,7 @@ ${links.extras.map(e => `${e.label}: ${e.url}`).join('\n')}`
 
       <div className="flex justify-between">
         <Button variant="ghost" onClick={onBack}>← Back</Button>
-        <Button onClick={() => onNext({ profile, tempGeminiKey: geminiKey })}>Looks good →</Button>
+        <Button onClick={() => onNext({ profile, tempGroqKey: groqKey })}>Looks good →</Button>
       </div>
     </div>
   )

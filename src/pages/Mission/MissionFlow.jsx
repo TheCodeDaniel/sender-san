@@ -88,7 +88,7 @@ export default function MissionFlow() {
           {step === 1 && (
             <Step2Brief
               data={data}
-              apiKey={keys?.gemini_key}
+              apiKey={keys?.groq_key}
               profile={profile}
               onNext={saveMissionAndProceed}
               onBack={back}
@@ -97,7 +97,7 @@ export default function MissionFlow() {
           {step === 2 && (
             <Step3Discover
               brief={data.brief}
-              apiKey={keys?.gemini_key}
+              apiKey={keys?.groq_key}
               profile={profile}
               onNext={next}
               onBack={back}
@@ -107,7 +107,7 @@ export default function MissionFlow() {
             <Step4Enrich
               companies={data.discoveredCompanies ?? []}
               brief={data.brief}
-              apiKey={keys?.gemini_key}
+              apiKey={keys?.groq_key}
               contactoutKey={keys?.contactout_key}
               onDone={() => navigate('/queue')}
             />

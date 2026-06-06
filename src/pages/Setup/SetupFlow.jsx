@@ -110,7 +110,7 @@ export default function SetupFlow() {
                 <Step4Keys
                   onNext={complete}
                   onBack={back}
-                  initialKeys={{ gemini_key: data.tempGeminiKey ?? '' }}
+                  initialKeys={{ groq_key: data.tempGroqKey ?? '' }}
                 />
               )}
             </>

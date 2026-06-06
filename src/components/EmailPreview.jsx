@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import Button from './ui/Button.jsx'
 import Spinner from './ui/Spinner.jsx'
-import { generateEmail } from '../api/gemini.js'
+import { generateEmail } from '../api/llm.js'
 
 export default function EmailPreview({ contact, company, profile, mission, apiKey, onSave }) {
   const [subject, setSubject] = useState(contact.email_subject ?? '')
@@ -17,7 +17,7 @@ export default function EmailPreview({ contact, company, profile, mission, apiKe
       setSubject(result.subject)
       setBody(result.body)
     } catch (e) {
-      setError('Failed to generate email. Check your Gemini API key.')
+      setError('Failed to generate email. Check your Groq API key.')
     } finally {
       setLoading(false)
     }

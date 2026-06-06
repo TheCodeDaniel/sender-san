@@ -8,7 +8,7 @@ import Tag from '../components/ui/Tag.jsx'
 import CountdownTimer from '../components/ui/CountdownTimer.jsx'
 import Spinner from '../components/ui/Spinner.jsx'
 import { buildRFC2822, sendGmailMessage, getGmailProfile, refreshAccessToken, randomBetween, sleep } from '../api/gmail.js'
-import { generateEmail } from '../api/gemini.js'
+import { generateEmail } from '../api/llm.js'
 import { useGoogleLogin } from '@react-oauth/google'
 import { v4 as uuidv4 } from 'uuid'
 
@@ -125,7 +125,7 @@ export default function Send() {
         let body = contact.email_body
         if (!subject || !body) {
           try {
-            const gen = await generateEmail(keys.gemini_key, profile, contact, company, mission)
+            const gen = await generateEmail(keys.groq_key, profile, contact, company, mission)
             subject = gen.subject
             body = gen.body
             await updateContact(company.id, i, { email_subject: subject, email_body: body })
@@ -252,7 +252,7 @@ export default function Send() {
                         company={company}
                         profile={profile}
                         mission={mission}
-                        apiKey={keys?.gemini_key}
+                        apiKey={keys?.groq_key}
                         onSave={async (data) => {
                           await updateContact(company.id, i, data)
                           await load()

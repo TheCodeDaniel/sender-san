@@ -1,13 +1,13 @@
 # 送信者 Sender-san
 
-A dark-themed, Japanese-aesthetic web app that helps developers automate professional outreach to companies — for job hunting, investor pitching, or offering freelance/contract services. Fully client-side: all data lives in your browser, encrypted with your PIN. No backend, no server, no data leaves your machine.
+A dark-themed, Japanese-aesthetic web app that helps developers automate professional outreach to companies — for job hunting, investor pitching, or offering freelance/contract services. Fully client-side: all data lives in your browser. No backend, no server, no data leaves your machine.
 
 ---
 
 ## Prerequisites
 
 - **Node.js 18+** — [nodejs.org](https://nodejs.org)
-- **Google AI Studio account** → Gemini API key — [aistudio.google.com](https://aistudio.google.com)
+- **Groq account** → free API key — [console.groq.com](https://console.groq.com) (no credit card needed)
 - **ContactOut account** → API key — [contactout.com](https://contactout.com)
 - **Google Cloud project** with Gmail API enabled → OAuth 2.0 Client ID (see below)
 
@@ -57,14 +57,12 @@ On first load you'll go through a 4-step setup:
 
 1. **CV Upload** — upload your PDF or DOCX CV. Parsed entirely in your browser.
 2. **Your Info** — GitHub, LinkedIn, skills, location, work preferences.
-3. **AI Analysis** — Gemini analyses your CV and builds your career profile. All editable.
-4. **Keys & PIN** — enter your API keys and create a 6-digit PIN.
-
-Your PIN is used to derive an AES-256 encryption key via PBKDF2 (100,000 iterations). The key is never stored — only held in memory for your session. All IndexedDB data is AES-GCM encrypted.
+3. **AI Analysis** — Llama 3.3 70B analyses your CV and builds your career profile. All editable.
+4. **API Keys** — enter your Groq, ContactOut, and Google OAuth keys.
 
 ### Backup & Restore
 
-- **Export**: History page → "Export backup" — downloads an encrypted JSON file. Not human-readable without your PIN.
+- **Export**: History page → "Export backup" — downloads a JSON file.
 - **Import**: History page → "Import backup" — restore from a previous export.
 
 ---
@@ -76,8 +74,8 @@ Your PIN is used to derive an AES-256 encryption key via PBKDF2 (100,000 iterati
 | Framework | React 18 + Vite |
 | Styling | Tailwind CSS v3 |
 | Routing | React Router v6 (HashRouter) |
-| Storage | IndexedDB via `idb`, AES-GCM encrypted |
-| AI | Google Gemini 1.5 Pro with Search Grounding |
+| Storage | IndexedDB via `idb` |
+| AI | Groq API — Llama 3.3 70B (`llama-3.3-70b-versatile`) |
 | Email | Gmail API via OAuth 2.0 |
 | Email Discovery | ContactOut API |
 | File Parsing | pdfjs-dist + mammoth |

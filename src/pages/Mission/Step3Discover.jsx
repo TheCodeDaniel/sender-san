@@ -3,7 +3,7 @@ import Button from '../../components/ui/Button.jsx'
 import ProgressBar from '../../components/ui/ProgressBar.jsx'
 import Tag from '../../components/ui/Tag.jsx'
 import Spinner from '../../components/ui/Spinner.jsx'
-import { discoverCompanies } from '../../api/gemini.js'
+import { discoverCompanies } from '../../api/llm.js'
 
 export default function Step3Discover({ brief, apiKey, profile, onNext, onBack }) {
   const [companies, setCompanies] = useState([])

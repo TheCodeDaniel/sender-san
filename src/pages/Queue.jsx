@@ -119,7 +119,7 @@ export default function Queue() {
                 company={company}
                 profile={profile}
                 mission={mission}
-                apiKey={keys?.gemini_key}
+                apiKey={keys?.groq_key}
                 onChange={load}
               />
             ))}

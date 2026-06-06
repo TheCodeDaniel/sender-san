@@ -3,7 +3,7 @@ import { v4 as uuidv4 } from 'uuid'
 import Button from '../../components/ui/Button.jsx'
 import ProgressBar from '../../components/ui/ProgressBar.jsx'
 import Spinner from '../../components/ui/Spinner.jsx'
-import { findContacts } from '../../api/gemini.js'
+import { findContacts } from '../../api/llm.js'
 import { searchPerson, verifyEmail, getDomainFromWebsite } from '../../api/contactout.js'
 import { setCompanies, getCachedContactOut, setCachedContactOut } from '../../db/indexeddb.js'
 
@@ -80,7 +80,7 @@ export default function Step4Enrich({ companies: rawCompanies, brief, apiKey, co
           contact.email_verified = false
         }
 
-        contact.email_source = contact.email_source ?? (contact.email ? 'gemini' : 'unknown')
+        contact.email_source = contact.email_source ?? (contact.email ? 'llm' : 'unknown')
         contact.activity_score = calcActivityScore(contact)
         contact.sent = false
         contact.sent_at = null
