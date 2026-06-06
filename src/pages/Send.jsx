@@ -60,17 +60,18 @@ export default function Send() {
     (!meta.last_send_timestamp || Date.now() >= new Date(nextSendTarget).getTime())
 
   const googleLogin = useGoogleLogin({
-    scope: 'https://www.googleapis.com/auth/gmail.send',
+    scope: 'https://www.googleapis.com/auth/gmail.send https://www.googleapis.com/auth/gmail.metadata',
     onSuccess: async (response) => {
+      const expiry = new Date(Date.now() + (response.expires_in ?? 3600) * 1000).toISOString()
+      const updated = { ...(keys ?? {}), gmail_token: { access_token: response.access_token, expiry } }
+      setKeys(updated)
+      await saveKeys(updated)
+      // Profile fetch is best-effort — token is saved regardless
       try {
         const gProfile = await getGmailProfile(response.access_token)
         setGmailEmail(gProfile.emailAddress)
-        const expiry = new Date(Date.now() + (response.expires_in ?? 3600) * 1000).toISOString()
-        const updated = { ...(keys ?? {}), gmail_token: { access_token: response.access_token, expiry } }
-        setKeys(updated)
-        await saveKeys(updated)
-      } catch (e) {
-        setError('Failed to get Gmail profile.')
+      } catch {
+        // Gmail API not enabled or scope insufficient — sending still works
       }
     },
     onError: () => setError('Gmail login failed.'),
