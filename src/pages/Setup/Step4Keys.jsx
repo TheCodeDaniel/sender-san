@@ -7,6 +7,7 @@ export default function Step4Keys({ onNext, onBack, initialKeys = {} }) {
     groq_key: initialKeys.groq_key ?? "",
     contactout_key: initialKeys.contactout_key ?? "",
     google_client_id: initialKeys.google_client_id ?? "",
+    tavily_key: initialKeys.tavily_key ?? "",
   });
   const [guideOpen, setGuideOpen] = useState(false);
   const [errors, setErrors] = useState({});
@@ -88,6 +89,28 @@ export default function Step4Keys({ onNext, onBack, initialKeys = {} }) {
           error={errors.google_client_id}
           placeholder="123456789-abc.apps.googleusercontent.com"
         />
+
+        <div className="border-t border-border pt-4">
+          <Input
+            label="Tavily API Key (optional — enables live web search)"
+            showToggle
+            value={keys.tavily_key}
+            onChange={(e) => set("tavily_key", e.target.value)}
+            placeholder="tvly-..."
+          />
+          <p className="text-xs text-text-muted mt-1">
+            Free — 1,000 searches/month, no credit card.{" "}
+            <a
+              href="https://app.tavily.com"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-secondary hover:underline"
+            >
+              app.tavily.com
+            </a>
+            . Without this, AI uses its training data instead.
+          </p>
+        </div>
 
         <button
           type="button"

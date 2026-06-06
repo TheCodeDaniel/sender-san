@@ -22,14 +22,26 @@ export default function SetupFlow() {
   useEffect(() => {
     getSetupDraft()
       .then(async draft => {
+        const storedKeys = await getKeys()
         if (draft?.data) {
-          setData(draft.data)
+          const d = draft.data
+          // Always backfill tempGroqKey and savedKeys from stored keys so
+          // Step 3 and Step 4 are always pre-filled even on a stale draft
+          setData({
+            ...d,
+            savedKeys: d.savedKeys ?? storedKeys ?? undefined,
+            tempGroqKey: d.tempGroqKey ?? storedKeys?.groq_key ?? undefined,
+          })
           if (typeof draft?.step === 'number') setStep(draft.step)
         } else {
-          // No draft — try to pre-fill from already-saved profile and keys
-          const [storedProfile, storedKeys] = await Promise.all([getProfile(), getKeys()])
+          // No draft — pre-fill from saved profile and keys
+          const storedProfile = await getProfile()
           if (storedProfile || storedKeys) {
-            setData({ profile: storedProfile ?? undefined, savedKeys: storedKeys ?? undefined })
+            setData({
+              profile: storedProfile ?? undefined,
+              savedKeys: storedKeys ?? undefined,
+              tempGroqKey: storedKeys?.groq_key ?? undefined,
+            })
           }
         }
       })
@@ -72,6 +84,7 @@ export default function SetupFlow() {
     groq_key: data.tempGroqKey ?? data.savedKeys?.groq_key ?? '',
     contactout_key: data.savedKeys?.contactout_key ?? '',
     google_client_id: data.savedKeys?.google_client_id ?? '',
+    tavily_key: data.savedKeys?.tavily_key ?? '',
   }
 
   return (

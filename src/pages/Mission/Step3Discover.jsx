@@ -5,7 +5,7 @@ import Tag from '../../components/ui/Tag.jsx'
 import Spinner from '../../components/ui/Spinner.jsx'
 import { discoverCompanies } from '../../api/llm.js'
 
-export default function Step3Discover({ brief, apiKey, profile, onNext, onBack }) {
+export default function Step3Discover({ brief, apiKey, tavilyKey, profile, onNext, onBack }) {
   const [companies, setCompanies] = useState([])
   const [status, setStatus] = useState('idle')
   const [error, setError] = useState('')
@@ -24,7 +24,7 @@ export default function Step3Discover({ brief, apiKey, profile, onNext, onBack }
     stopRef.current = false
 
     try {
-      await discoverCompanies(apiKey, brief, profile, (company, count) => {
+      await discoverCompanies(apiKey, tavilyKey, brief, profile, (company, count) => {
         if (stopRef.current) return
         setCompanies(prev => [...prev, { ...company, _idx: count - 1 }])
       })

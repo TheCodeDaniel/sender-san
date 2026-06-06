@@ -98,6 +98,7 @@ export default function MissionFlow() {
             <Step3Discover
               brief={data.brief}
               apiKey={keys?.groq_key}
+              tavilyKey={keys?.tavily_key}
               profile={profile}
               onNext={next}
               onBack={back}
@@ -108,6 +109,7 @@ export default function MissionFlow() {
               companies={data.discoveredCompanies ?? []}
               brief={data.brief}
               apiKey={keys?.groq_key}
+              tavilyKey={keys?.tavily_key}
               contactoutKey={keys?.contactout_key}
               onDone={() => navigate('/queue')}
             />

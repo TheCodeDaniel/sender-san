@@ -22,7 +22,7 @@ function calcActivityScore(contact) {
   return recency.length > 0 ? 2 : 1
 }
 
-export default function Step4Enrich({ companies: rawCompanies, brief, apiKey, contactoutKey, onDone }) {
+export default function Step4Enrich({ companies: rawCompanies, brief, apiKey, tavilyKey, contactoutKey, onDone }) {
   const [progress, setProgress] = useState(0)
   const [currentCompany, setCurrentCompany] = useState('')
   const [error, setError] = useState('')
@@ -45,7 +45,7 @@ export default function Step4Enrich({ companies: rawCompanies, brief, apiKey, co
 
       let contacts = []
       try {
-        const raw = await findContacts(apiKey, company, brief.ideal_contact_roles ?? [])
+        const raw = await findContacts(apiKey, tavilyKey, company, brief.ideal_contact_roles ?? [])
         contacts = Array.isArray(raw) ? raw : []
       } catch {
         contacts = []

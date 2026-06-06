@@ -20,6 +20,29 @@ async function chat(apiKey, prompt, temperature = 0.7) {
   return res.choices[0].message.content
 }
 
+async function tavilySearch(tavilyKey, query, maxResults = 6) {
+  const res = await fetch('https://api.tavily.com/search', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      api_key: tavilyKey,
+      query,
+      search_depth: 'basic',
+      max_results: maxResults,
+      include_answer: false,
+    }),
+  })
+  if (!res.ok) throw new Error(`Tavily ${res.status}`)
+  const data = await res.json()
+  return data.results ?? []
+}
+
+function formatResults(results) {
+  return results
+    .map(r => `- ${r.title}\n  ${(r.content ?? '').slice(0, 280)}`)
+    .join('\n')
+}
+
 export async function generateMissionBrief(apiKey, profile, goalType, goalParams) {
   const prompt = `You are a professional outreach strategist. Based on the developer profile and mission parameters provided, generate a mission brief as a JSON object matching the schema. Return ONLY valid JSON, no markdown, no preamble.
 
@@ -48,11 +71,29 @@ ${JSON.stringify(goalParams, null, 2)}`
   return parsed
 }
 
-export async function discoverCompanies(apiKey, mission, profile, onCompany) {
+export async function discoverCompanies(apiKey, tavilyKey, mission, profile, onCompany) {
+  let searchContext = ''
+
+  if (tavilyKey) {
+    try {
+      const keywords = mission.search_keywords?.slice(0, 3).join(' ') ?? ''
+      const [r1, r2] = await Promise.all([
+        tavilySearch(tavilyKey, `${keywords} companies`, 8),
+        tavilySearch(tavilyKey, `${mission.target_profile} companies`, 8),
+      ])
+      const hits = [...r1, ...r2].filter((r, i, a) => a.findIndex(x => x.url === r.url) === i)
+      if (hits.length > 0) {
+        searchContext = `\n\nReal web search results — prioritise companies mentioned here:\n${formatResults(hits)}`
+      }
+    } catch {
+      // Tavily unavailable — fall back to LLM knowledge
+    }
+  }
+
   const prompt = `You are a company research agent. Find up to 30 real companies that match this target profile: ${mission.target_profile}.
 
 Developer skills: ${profile.skills?.join(', ')}. Mission type: ${mission.mission_type}.
-Search keywords: ${mission.search_keywords?.join(', ')}.
+Search keywords: ${mission.search_keywords?.join(', ')}.${searchContext}
 
 Return ONLY a valid JSON array (no markdown, no preamble) of company objects:
 [{
@@ -64,7 +105,7 @@ Return ONLY a valid JSON array (no markdown, no preamble) of company objects:
   "size_estimate": "startup | mid-size | enterprise | unknown"
 }]
 
-Focus on real, active companies. Prioritise companies likely to be actively hiring or needing these services based on their known growth stage, tech stack, or recent activity.`
+Focus on real, active companies. Prioritise companies likely to be actively hiring or needing these services.`
 
   const text = await chat(apiKey, prompt, 0.8)
   const companies = JSON.parse(stripFences(text))
@@ -77,10 +118,28 @@ Focus on real, active companies. Prioritise companies likely to be actively hiri
   return companies
 }
 
-export async function findContacts(apiKey, company, idealRoles) {
-  const prompt = `Find 2-3 people at ${company.name} (${company.website}) who match these roles: ${idealRoles.join(', ')}.
+export async function findContacts(apiKey, tavilyKey, company, idealRoles) {
+  let searchContext = ''
 
-Use your knowledge of this company. Return ONLY a valid JSON array (no markdown, no preamble):
+  if (tavilyKey) {
+    try {
+      const roleQuery = idealRoles.slice(0, 2).join(' OR ')
+      const results = await tavilySearch(
+        tavilyKey,
+        `${company.name} ${roleQuery} team`,
+        6,
+      )
+      if (results.length > 0) {
+        searchContext = `\n\nWeb search results about this company's team (use these to find real people):\n${formatResults(results)}`
+      }
+    } catch {
+      // Tavily unavailable — fall back to LLM knowledge
+    }
+  }
+
+  const prompt = `Find 2-3 people at ${company.name} (${company.website}) who match these roles: ${idealRoles.join(', ')}.${searchContext}
+
+Return ONLY a valid JSON array (no markdown, no preamble):
 [{
   "name": "string",
   "role": "string",
@@ -93,7 +152,7 @@ Use your knowledge of this company. Return ONLY a valid JSON array (no markdown,
   "last_active_twitter": "string | null"
 }]
 
-Only include people you are reasonably confident exist at this company. Return an empty array [] if unsure.`
+Only include people you are confident exist at this company. Return [] if unsure.`
 
   try {
     const text = await chat(apiKey, prompt, 0.5)
