@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useProfile } from '../../context/ProfileContext.jsx'
-import { setKeys, setMeta, getSetupDraft, setSetupDraft, clearSetupDraft } from '../../db/indexeddb.js'
+import { setKeys, setMeta, getProfile, getKeys, getSetupDraft, setSetupDraft, clearSetupDraft } from '../../db/indexeddb.js'
 import Step1Upload from './Step1Upload.jsx'
 import Step2Links from './Step2Links.jsx'
 import Step3Analysis from './Step3Analysis.jsx'
@@ -21,9 +21,17 @@ export default function SetupFlow() {
 
   useEffect(() => {
     getSetupDraft()
-      .then(draft => {
-        if (draft?.data) setData(draft.data)
-        if (typeof draft?.step === 'number') setStep(draft.step)
+      .then(async draft => {
+        if (draft?.data) {
+          setData(draft.data)
+          if (typeof draft?.step === 'number') setStep(draft.step)
+        } else {
+          // No draft — try to pre-fill from already-saved profile and keys
+          const [storedProfile, storedKeys] = await Promise.all([getProfile(), getKeys()])
+          if (storedProfile || storedKeys) {
+            setData({ profile: storedProfile ?? undefined, savedKeys: storedKeys ?? undefined })
+          }
+        }
       })
       .finally(() => setDraftLoaded(true))
   }, [])
@@ -45,12 +53,25 @@ export default function SetupFlow() {
       await saveProfile({ ...data.profile, _raw_cv: data.cvText })
       await setKeys(keys)
       await setMeta({ setup_complete: true })
-      await clearSetupDraft()
+      // Keep all data in draft (step reset to 0) so next setup visit is pre-filled
+      await setSetupDraft({ step: 0, data: { ...data, savedKeys: keys } })
       navigate('/', { replace: true })
     } catch (e) {
       setError('Setup failed. Please try again.')
       setSaving(false)
     }
+  }
+
+  const resetDraft = async () => {
+    await clearSetupDraft()
+    setData({})
+    setStep(0)
+  }
+
+  const initialKeysForStep4 = {
+    groq_key: data.tempGroqKey ?? data.savedKeys?.groq_key ?? '',
+    contactout_key: data.savedKeys?.contactout_key ?? '',
+    google_client_id: data.savedKeys?.google_client_id ?? '',
   }
 
   return (
@@ -110,13 +131,22 @@ export default function SetupFlow() {
                 <Step4Keys
                   onNext={complete}
                   onBack={back}
-                  initialKeys={{ groq_key: data.tempGroqKey ?? '' }}
+                  initialKeys={initialKeysForStep4}
                 />
               )}
             </>
           )}
 
           {error && <p className="text-primary text-sm mt-4 text-center">{error}</p>}
+        </div>
+
+        <div className="flex justify-center mt-6">
+          <button
+            onClick={resetDraft}
+            className="text-xs text-text-muted opacity-40 hover:opacity-100 hover:text-primary transition-smooth"
+          >
+            Clear saved form data
+          </button>
         </div>
       </div>
     </div>
