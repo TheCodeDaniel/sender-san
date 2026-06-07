@@ -7,24 +7,24 @@
 
 ## Overview
 
-Sender-san is a fully client-side web application. There is no backend server. All data lives in the user's browser via IndexedDB (AES-GCM encrypted). All AI is powered by Google Gemini API. Email sending goes through Gmail OAuth (Google Identity Services + Gmail REST API). ContactOut API handles email discovery as a fallback when Gemini Search Grounding cannot find a verified contact email.
+Sender-san is a fully client-side web application. There is no backend server. All data lives in the user's browser via IndexedDB. All AI is powered by Groq API (Llama 3.3 70B). Email sending goes through Gmail OAuth (Google Identity Services + Gmail REST API). ContactOut API handles email discovery as a fallback when the LLM cannot find a verified contact email.
 
 ---
 
 ## Tech Stack
 
-| Layer           | Choice                                                                                                       |
-| --------------- | ------------------------------------------------------------------------------------------------------------ |
-| Framework       | React 18 + Vite                                                                                              |
-| Styling         | Tailwind CSS v3                                                                                              |
-| Routing         | React Router v6 — **HashRouter** (required for GitHub Pages static hosting)                                  |
-| Storage         | IndexedDB via `idb` npm package, AES-GCM encrypted via Web Crypto API                                        |
-| AI              | Google Gemini API (`@google/generative-ai`) — Gemini 1.5 Pro with function calling + Google Search Grounding |
-| Email Auth      | Gmail API via OAuth 2.0 (`@react-oauth/google`), refresh token stored encrypted in IndexedDB                 |
-| Email Discovery | ContactOut API (REST, called from browser with user-provided API key)                                        |
-| File Parsing    | `pdfjs-dist` for PDF CVs, `mammoth` for .docx CVs                                                            |
-| Scheduling      | No server cron — IndexedDB timestamps gate daily sends. User manually triggers each day's batch.             |
-| Deployment      | GitHub Pages via `gh-pages` npm package                                                                      |
+| Layer           | Choice                                                                                              |
+| --------------- | --------------------------------------------------------------------------------------------------- |
+| Framework       | React 18 + Vite                                                                                     |
+| Styling         | Tailwind CSS v3                                                                                     |
+| Routing         | React Router v6 — **HashRouter** (required for GitHub Pages static hosting)                         |
+| Storage         | IndexedDB via `idb` npm package, AES-GCM encrypted via Web Crypto API                               |
+| AI              | Groq API (`groq-sdk`) — Llama 3.3 70B (`llama-3.3-70b-versatile`), free tier, no credit card needed |
+| Email Auth      | Gmail API via OAuth 2.0 (`@react-oauth/google`), refresh token stored encrypted in IndexedDB        |
+| Email Discovery | ContactOut API (REST, called from browser with user-provided API key)                               |
+| File Parsing    | `pdfjs-dist` for PDF CVs, `mammoth` for .docx CVs                                                   |
+| Scheduling      | No server cron — IndexedDB timestamps gate daily sends. User manually triggers each day's batch.    |
+| Deployment      | GitHub Pages via `gh-pages` npm package                                                             |
 
 ---
 
@@ -306,7 +306,7 @@ Input fields (all `type="password"`, toggle show/hide):
 | Key                    | Label                  | Notes                                             |
 | ---------------------- | ---------------------- | ------------------------------------------------- |
 | Gemini API Key         | Google AI Studio Key   | Link to `aistudio.google.com`                     |
-| ContactOut API Key     | ContactOut Key         | Link to `contactout.com/api`                      |
+| ContactOut API Key     | ContactOut Key         | Link to `https://contactout.com/api-feature`      |
 | Google OAuth Client ID | Google Cloud Client ID | Collapsible step-by-step guide inline (see below) |
 
 **Collapsible Google OAuth setup guide:**

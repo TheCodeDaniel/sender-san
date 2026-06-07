@@ -9,7 +9,6 @@ import Step4Enrich from './Step4Enrich.jsx'
 import Modal from '../../components/ui/Modal.jsx'
 import Button from '../../components/ui/Button.jsx'
 import Spinner from '../../components/ui/Spinner.jsx'
-import { NavBar } from '../Dashboard.jsx'
 
 const STEPS = ['Goal', 'Mission Brief', 'Discover', 'Enrich']
 
@@ -56,16 +55,15 @@ export default function MissionFlow() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
+      <div className="flex items-center justify-center py-32">
         <Spinner size="lg" />
       </div>
     )
   }
 
   return (
-    <div className="min-h-screen bg-background">
-      <NavBar />
-      <main className="max-w-3xl mx-auto px-4 py-8">
+    <>
+    <main className="max-w-3xl mx-auto px-6 py-8">
         <div className="flex items-center justify-center gap-2 mb-8">
           {STEPS.map((label, i) => (
             <div key={i} className="flex items-center gap-2">
@@ -88,7 +86,7 @@ export default function MissionFlow() {
           {step === 1 && (
             <Step2Brief
               data={data}
-              apiKey={keys?.gemini_key}
+              apiKey={keys?.groq_key}
               profile={profile}
               onNext={saveMissionAndProceed}
               onBack={back}
@@ -97,7 +95,8 @@ export default function MissionFlow() {
           {step === 2 && (
             <Step3Discover
               brief={data.brief}
-              apiKey={keys?.gemini_key}
+              apiKey={keys?.groq_key}
+              tavilyKey={keys?.tavily_key}
               profile={profile}
               onNext={next}
               onBack={back}
@@ -107,27 +106,28 @@ export default function MissionFlow() {
             <Step4Enrich
               companies={data.discoveredCompanies ?? []}
               brief={data.brief}
-              apiKey={keys?.gemini_key}
+              apiKey={keys?.groq_key}
+              tavilyKey={keys?.tavily_key}
               contactoutKey={keys?.contactout_key}
               onDone={() => navigate('/queue')}
             />
           )}
         </div>
-      </main>
+    </main>
 
-      <Modal
-        open={archiveModal}
-        title="Active mission exists"
-        footer={
-          <>
-            <Button variant="ghost" onClick={() => navigate('/')}>Keep current</Button>
-            <Button onClick={archiveAndStart}>Archive & start new</Button>
-          </>
-        }
-      >
-        <p>You already have an active mission: <strong className="text-text-primary">{existingMission?.headline}</strong></p>
-        <p className="mt-2">Archiving will keep your history but clear the current queue for a fresh start.</p>
-      </Modal>
-    </div>
+    <Modal
+      open={archiveModal}
+      title="Active mission exists"
+      footer={
+        <>
+          <Button variant="ghost" onClick={() => navigate('/')}>Keep current</Button>
+          <Button onClick={archiveAndStart}>Archive & start new</Button>
+        </>
+      }
+    >
+      <p>You already have an active mission: <strong className="text-text-primary">{existingMission?.headline}</strong></p>
+      <p className="mt-2">Archiving will keep your history but clear the current queue for a fresh start.</p>
+    </Modal>
+    </>
   )
 }

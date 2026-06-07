@@ -23,8 +23,8 @@
   },
   "homepage": "https://thecodedaniel.github.io/sender-san",
   "dependencies": {
-    "@google/generative-ai": "^0.24.1",
     "@react-oauth/google": "^0.13.5",
+    "groq-sdk": "^1.2.1",
     "idb": "^8.0.3",
     "mammoth": "^1.12.0",
     "pdfjs-dist": "^6.0.227",

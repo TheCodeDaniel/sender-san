@@ -2,27 +2,33 @@ import { useState } from 'react'
 import Tag from './ui/Tag.jsx'
 import ContactRow from './ContactRow.jsx'
 import EmailPreview from './EmailPreview.jsx'
-import { updateCompany, updateContact } from '../db/indexeddb.js'
+import { updateCompany, updateContact, deleteCompany } from '../db/indexeddb.js'
 
 const BATCH_OPTIONS = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
 
 export default function CompanyCard({ company, profile, mission, apiKey, onChange }) {
   const [expanded, setExpanded] = useState(false)
   const [previewContact, setPreviewContact] = useState(null)
+  const [confirmRemove, setConfirmRemove] = useState(false)
 
-  const statusColor = { pending: 'default', sent: 'green', skipped: 'red' }
+  const statusColor = { pending: 'default', sent: 'green', skipped: 'default' }
   const coverageCount = company.contacts?.filter(c => c.email)?.length ?? 0
   const verifiedCount = company.contacts?.filter(c => c.email_verified)?.length ?? 0
   const totalContacts = company.contacts?.length ?? 0
 
   const emailStatus = verifiedCount === totalContacts && totalContacts > 0
-    ? { label: 'All Verified ✓', color: 'green' }
+    ? { label: 'All Verified', color: 'green' }
     : verifiedCount > 0
-    ? { label: 'Partial ⚠', color: 'gold' }
-    : { label: 'None ✗', color: 'red' }
+    ? { label: 'Partial', color: 'gold' }
+    : { label: 'No email', color: 'default' }
 
   const handleSkip = async () => {
     await updateCompany(company.id, { status: 'skipped' })
+    onChange?.()
+  }
+
+  const handleRemove = async () => {
+    await deleteCompany(company.id)
     onChange?.()
   }
 
@@ -47,8 +53,13 @@ export default function CompanyCard({ company, profile, mission, apiKey, onChang
           <div className="flex items-center gap-2 flex-wrap">
             <span className="text-text-primary font-medium">{company.name}</span>
             <Tag>{company.industry}</Tag>
-            <Tag color={statusColor[company.status] ?? 'default'}>{company.status}</Tag>
+            {company.status !== 'pending' && (
+              <Tag color={statusColor[company.status] ?? 'default'}>{company.status}</Tag>
+            )}
           </div>
+          {company.website && (
+            <p className="text-xs text-text-muted mt-0.5 truncate">{company.website}</p>
+          )}
         </div>
 
         <div className="flex items-center gap-3 text-xs text-text-muted shrink-0">
@@ -63,7 +74,9 @@ export default function CompanyCard({ company, profile, mission, apiKey, onChang
         <div className="border-t border-border px-3 pb-3">
           <div className="py-3">
             <p className="text-text-muted text-sm mb-1">{company.description}</p>
-            <p className="text-xs text-secondary">{company.why_relevant}</p>
+            {company.why_relevant && (
+              <p className="text-xs text-secondary italic">{company.why_relevant}</p>
+            )}
           </div>
 
           {(company.contacts ?? []).map((contact, i) => (
@@ -71,13 +84,14 @@ export default function CompanyCard({ company, profile, mission, apiKey, onChang
               key={i}
               contact={contact}
               companyId={company.id}
-              onPreviewEmail={() => setPreviewContact(i)}
+              onPreviewEmail={() => setPreviewContact(previewContact === i ? null : i)}
+              previewOpen={previewContact === i}
             />
           ))}
 
           {previewContact !== null && (
-            <div className="mt-3 card p-4">
-              <p className="text-text-muted text-xs mb-3 uppercase tracking-wide">
+            <div className="mt-3 card p-4 bg-background">
+              <p className="text-text-muted text-xs mb-3 uppercase tracking-wide font-medium">
                 Email preview — {company.contacts[previewContact]?.name}
               </p>
               <EmailPreview
@@ -93,10 +107,36 @@ export default function CompanyCard({ company, profile, mission, apiKey, onChang
 
           <div className="flex items-center gap-3 mt-3 pt-3 border-t border-border">
             {company.status !== 'skipped' && (
-              <button onClick={handleSkip} className="text-xs text-text-muted hover:text-primary transition-smooth">
-                Skip company
+              <button onClick={handleSkip} className="text-xs text-text-muted hover:text-text-primary transition-smooth">
+                Skip
               </button>
             )}
+
+            {confirmRemove ? (
+              <div className="flex items-center gap-2">
+                <span className="text-xs text-text-muted">Remove permanently?</span>
+                <button
+                  onClick={handleRemove}
+                  className="text-xs text-red-500 hover:text-red-700 font-medium transition-smooth"
+                >
+                  Yes, remove
+                </button>
+                <button
+                  onClick={() => setConfirmRemove(false)}
+                  className="text-xs text-text-muted hover:text-text-primary transition-smooth"
+                >
+                  Cancel
+                </button>
+              </div>
+            ) : (
+              <button
+                onClick={() => setConfirmRemove(true)}
+                className="text-xs text-text-muted hover:text-red-500 transition-smooth"
+              >
+                Remove
+              </button>
+            )}
+
             <div className="flex items-center gap-2 ml-auto">
               <label className="text-xs text-text-muted">Move to batch</label>
               <select

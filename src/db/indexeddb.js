@@ -90,6 +90,11 @@ export async function updateCompany(id, updates) {
   return setCompanies(companies)
 }
 
+export async function deleteCompany(id) {
+  const companies = await getCompanies()
+  return setCompanies(companies.filter(c => c.id !== id))
+}
+
 export async function updateContact(companyId, contactIdx, updates) {
   const companies = await getCompanies()
   const company = companies.find(c => c.id === companyId)

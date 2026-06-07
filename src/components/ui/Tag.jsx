@@ -1,11 +1,11 @@
 export default function Tag({ children, onRemove, color = 'default', className = '' }) {
   const colors = {
-    default: 'bg-border text-text-muted',
-    primary: 'bg-primary/20 text-primary',
-    gold: 'bg-secondary/20 text-secondary',
-    green: 'bg-green-900/40 text-green-400',
-    red: 'bg-red-900/40 text-primary',
-    blue: 'bg-blue-900/40 text-blue-400',
+    default: 'bg-zinc-100 text-zinc-600',
+    primary: 'bg-zinc-900 text-white',
+    gold: 'bg-amber-100 text-amber-700',
+    green: 'bg-emerald-100 text-emerald-700',
+    red: 'bg-red-100 text-red-600',
+    blue: 'bg-blue-100 text-blue-700',
   }
   return (
     <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-medium ${colors[color] ?? colors.default} ${className}`}>
@@ -14,7 +14,7 @@ export default function Tag({ children, onRemove, color = 'default', className =
         <button
           type="button"
           onClick={onRemove}
-          className="ml-0.5 hover:text-white transition-smooth"
+          className="ml-0.5 hover:opacity-60 transition-smooth"
           aria-label="Remove"
         >
           ×

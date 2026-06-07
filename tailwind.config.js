@@ -7,13 +7,13 @@ export default {
   theme: {
     extend: {
       colors: {
-        background: '#0D0D0D',
-        surface: '#161616',
-        border: '#2A2A2A',
-        primary: '#C0392B',
-        secondary: '#C9A84C',
-        'text-primary': '#F0F0F0',
-        'text-muted': '#888888',
+        background: '#F4F4F5',
+        surface: '#FFFFFF',
+        border: '#E4E4E7',
+        primary: '#18181B',
+        secondary: '#71717A',
+        'text-primary': '#18181B',
+        'text-muted': '#71717A',
       },
       fontFamily: {
         sans: ['Geist', 'Inter', 'system-ui', 'sans-serif'],

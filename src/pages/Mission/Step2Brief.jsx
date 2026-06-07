@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import Button from '../../components/ui/Button.jsx'
 import Spinner from '../../components/ui/Spinner.jsx'
 import Tag from '../../components/ui/Tag.jsx'
-import { generateMissionBrief } from '../../api/gemini.js'
+import { generateMissionBrief } from '../../api/llm.js'
 
 export default function Step2Brief({ data, apiKey, profile, onNext, onBack }) {
   const [brief, setBrief] = useState(null)
@@ -20,7 +20,7 @@ export default function Step2Brief({ data, apiKey, profile, onNext, onBack }) {
       const result = await generateMissionBrief(apiKey, profile, data.goalType, data.goalParams)
       setBrief(result)
     } catch (e) {
-      setError('Failed to generate mission brief. Check your Gemini API key.')
+      setError('Failed to generate mission brief. Check your Groq API key.')
     } finally {
       setLoading(false)
     }

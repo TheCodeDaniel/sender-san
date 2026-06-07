@@ -1,14 +1,13 @@
 import { useState, useEffect, useRef } from 'react'
 import { useProfile } from '../context/ProfileContext.jsx'
 import { getCompanies, getMission, getMeta, setMeta, getKeys, setKeys as saveKeys, updateCompany, updateContact, addHistoryEntry } from '../db/indexeddb.js'
-import { NavBar } from './Dashboard.jsx'
 import EmailPreview from '../components/EmailPreview.jsx'
 import Button from '../components/ui/Button.jsx'
 import Tag from '../components/ui/Tag.jsx'
 import CountdownTimer from '../components/ui/CountdownTimer.jsx'
 import Spinner from '../components/ui/Spinner.jsx'
 import { buildRFC2822, sendGmailMessage, getGmailProfile, refreshAccessToken, randomBetween, sleep } from '../api/gmail.js'
-import { generateEmail } from '../api/gemini.js'
+import { generateEmail } from '../api/llm.js'
 import { useGoogleLogin } from '@react-oauth/google'
 import { v4 as uuidv4 } from 'uuid'
 
@@ -60,17 +59,18 @@ export default function Send() {
     (!meta.last_send_timestamp || Date.now() >= new Date(nextSendTarget).getTime())
 
   const googleLogin = useGoogleLogin({
-    scope: 'https://www.googleapis.com/auth/gmail.send',
+    scope: 'https://www.googleapis.com/auth/gmail.send https://www.googleapis.com/auth/gmail.metadata',
     onSuccess: async (response) => {
+      const expiry = new Date(Date.now() + (response.expires_in ?? 3600) * 1000).toISOString()
+      const updated = { ...(keys ?? {}), gmail_token: { access_token: response.access_token, expiry } }
+      setKeys(updated)
+      await saveKeys(updated)
+      // Profile fetch is best-effort — token is saved regardless
       try {
         const gProfile = await getGmailProfile(response.access_token)
         setGmailEmail(gProfile.emailAddress)
-        const expiry = new Date(Date.now() + (response.expires_in ?? 3600) * 1000).toISOString()
-        const updated = { ...(keys ?? {}), gmail_token: { access_token: response.access_token, expiry } }
-        setKeys(updated)
-        await saveKeys(updated)
-      } catch (e) {
-        setError('Failed to get Gmail profile.')
+      } catch {
+        // Gmail API not enabled or scope insufficient — sending still works
       }
     },
     onError: () => setError('Gmail login failed.'),
@@ -125,7 +125,7 @@ export default function Send() {
         let body = contact.email_body
         if (!subject || !body) {
           try {
-            const gen = await generateEmail(keys.gemini_key, profile, contact, company, mission)
+            const gen = await generateEmail(keys.groq_key, profile, contact, company, mission)
             subject = gen.subject
             body = gen.body
             await updateContact(company.id, i, { email_subject: subject, email_body: body })
@@ -176,16 +176,14 @@ export default function Send() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
+      <div className="flex items-center justify-center py-32">
         <Spinner size="lg" />
       </div>
     )
   }
 
   return (
-    <div className="min-h-screen bg-background">
-      <NavBar />
-      <main className="max-w-4xl mx-auto px-4 py-8">
+    <main className="max-w-4xl mx-auto px-6 py-8">
         <div className="relative mb-6">
           <div className="kanji-watermark" style={{ top: '-3rem', left: '-2rem' }}>送信</div>
           <h1 className="text-2xl font-semibold text-text-primary">Daily Send 送信</h1>
@@ -252,7 +250,7 @@ export default function Send() {
                         company={company}
                         profile={profile}
                         mission={mission}
-                        apiKey={keys?.gemini_key}
+                        apiKey={keys?.groq_key}
                         onSave={async (data) => {
                           await updateContact(company.id, i, data)
                           await load()
@@ -289,7 +287,6 @@ export default function Send() {
         >
           {sending ? <span className="flex items-center gap-2"><Spinner size="sm" /> Sending…</span> : 'Send Today\'s Batch 送信'}
         </Button>
-      </main>
-    </div>
+    </main>
   )
 }

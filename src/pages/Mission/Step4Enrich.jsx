@@ -3,7 +3,7 @@ import { v4 as uuidv4 } from 'uuid'
 import Button from '../../components/ui/Button.jsx'
 import ProgressBar from '../../components/ui/ProgressBar.jsx'
 import Spinner from '../../components/ui/Spinner.jsx'
-import { findContacts } from '../../api/gemini.js'
+import { findContacts } from '../../api/llm.js'
 import { searchPerson, verifyEmail, getDomainFromWebsite } from '../../api/contactout.js'
 import { setCompanies, getCachedContactOut, setCachedContactOut } from '../../db/indexeddb.js'
 
@@ -22,7 +22,7 @@ function calcActivityScore(contact) {
   return recency.length > 0 ? 2 : 1
 }
 
-export default function Step4Enrich({ companies: rawCompanies, brief, apiKey, contactoutKey, onDone }) {
+export default function Step4Enrich({ companies: rawCompanies, brief, apiKey, tavilyKey, contactoutKey, onDone }) {
   const [progress, setProgress] = useState(0)
   const [currentCompany, setCurrentCompany] = useState('')
   const [error, setError] = useState('')
@@ -45,7 +45,7 @@ export default function Step4Enrich({ companies: rawCompanies, brief, apiKey, co
 
       let contacts = []
       try {
-        const raw = await findContacts(apiKey, company, brief.ideal_contact_roles ?? [])
+        const raw = await findContacts(apiKey, tavilyKey, company, brief.ideal_contact_roles ?? [])
         contacts = Array.isArray(raw) ? raw : []
       } catch {
         contacts = []
@@ -80,7 +80,7 @@ export default function Step4Enrich({ companies: rawCompanies, brief, apiKey, co
           contact.email_verified = false
         }
 
-        contact.email_source = contact.email_source ?? (contact.email ? 'gemini' : 'unknown')
+        contact.email_source = contact.email_source ?? (contact.email ? 'llm' : 'unknown')
         contact.activity_score = calcActivityScore(contact)
         contact.sent = false
         contact.sent_at = null
@@ -88,9 +88,14 @@ export default function Step4Enrich({ companies: rawCompanies, brief, apiKey, co
         contact.email_body = null
       }
 
-      // Sort by activity score, keep top 3
-      contacts.sort((a, b) => b.activity_score - a.activity_score)
-      contacts = contacts.slice(0, 3)
+      // Keep only contacts with an email, sort by activity score, cap at 3
+      contacts = contacts
+        .filter(c => !!c.email)
+        .sort((a, b) => b.activity_score - a.activity_score)
+        .slice(0, 3)
+
+      // Skip company entirely if no usable contacts were found
+      if (contacts.length === 0) continue
 
       enriched.push({
         id: uuidv4(),

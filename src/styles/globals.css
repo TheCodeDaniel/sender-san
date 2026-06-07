@@ -44,14 +44,14 @@
     height: 6px;
   }
   ::-webkit-scrollbar-track {
-    background: #0D0D0D;
+    background: #F4F4F5;
   }
   ::-webkit-scrollbar-thumb {
-    background: #2A2A2A;
+    background: #D4D4D8;
     border-radius: 3px;
   }
   ::-webkit-scrollbar-thumb:hover {
-    background: #3A3A3A;
+    background: #A1A1AA;
   }
 }
 
@@ -59,12 +59,13 @@
   .kanji-watermark {
     font-family: 'Noto Serif JP', serif;
     font-size: 14rem;
-    opacity: 0.04;
+    opacity: 0.05;
     position: absolute;
     user-select: none;
     pointer-events: none;
     line-height: 1;
     font-weight: 700;
+    color: #18181B;
   }
 
   .transition-smooth {
@@ -72,15 +73,15 @@
   }
 
   .card {
-    @apply bg-surface border border-border rounded-card;
+    @apply bg-surface border border-border rounded-card shadow-sm;
   }
 
   .btn-primary {
-    @apply bg-primary text-white px-4 py-2 rounded-card font-medium transition-smooth hover:opacity-90 active:opacity-80 disabled:opacity-40 disabled:cursor-not-allowed;
+    @apply bg-primary text-white px-4 py-2 rounded-card font-medium transition-smooth hover:bg-zinc-700 active:opacity-80 disabled:opacity-40 disabled:cursor-not-allowed;
   }
 
   .btn-ghost {
-    @apply border border-border text-text-primary px-4 py-2 rounded-card font-medium transition-smooth hover:border-text-muted active:opacity-80 disabled:opacity-40 disabled:cursor-not-allowed bg-transparent;
+    @apply border border-border text-text-primary px-4 py-2 rounded-card font-medium transition-smooth hover:bg-background active:opacity-80 disabled:opacity-40 disabled:cursor-not-allowed bg-transparent;
   }
 
   .input-base {
@@ -88,6 +89,6 @@
   }
 
   .nav-active {
-    @apply text-primary border-b-2 border-primary;
+    @apply bg-primary text-white;
   }
 }
