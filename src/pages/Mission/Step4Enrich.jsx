@@ -88,9 +88,14 @@ export default function Step4Enrich({ companies: rawCompanies, brief, apiKey, ta
         contact.email_body = null
       }
 
-      // Sort by activity score, keep top 3
-      contacts.sort((a, b) => b.activity_score - a.activity_score)
-      contacts = contacts.slice(0, 3)
+      // Keep only contacts with an email, sort by activity score, cap at 3
+      contacts = contacts
+        .filter(c => !!c.email)
+        .sort((a, b) => b.activity_score - a.activity_score)
+        .slice(0, 3)
+
+      // Skip company entirely if no usable contacts were found
+      if (contacts.length === 0) continue
 
       enriched.push({
         id: uuidv4(),

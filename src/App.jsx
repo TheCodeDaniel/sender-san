@@ -3,6 +3,7 @@ import { ProfileProvider } from './context/ProfileContext.jsx'
 import { GoogleOAuthProvider } from '@react-oauth/google'
 import { useEffect, useState } from 'react'
 import { getMeta, getKeys } from './db/indexeddb.js'
+import Layout from './components/Layout.jsx'
 import SetupFlow from './pages/Setup/SetupFlow.jsx'
 import Dashboard from './pages/Dashboard.jsx'
 import MissionFlow from './pages/Mission/MissionFlow.jsx'
@@ -49,11 +50,13 @@ function AppRoutes() {
     <OAuthWrapper>
       <Routes>
         <Route path="/setup" element={<SetupFlow />} />
-        <Route path="/" element={<Dashboard />} />
-        <Route path="/mission/new" element={<MissionFlow />} />
-        <Route path="/queue" element={<Queue />} />
-        <Route path="/send" element={<Send />} />
-        <Route path="/history" element={<History />} />
+        <Route element={<Layout />}>
+          <Route path="/" element={<Dashboard />} />
+          <Route path="/mission/new" element={<MissionFlow />} />
+          <Route path="/queue" element={<Queue />} />
+          <Route path="/send" element={<Send />} />
+          <Route path="/history" element={<History />} />
+        </Route>
         <Route path="*" element={<Navigate to={setupComplete ? '/' : '/setup'} replace />} />
       </Routes>
     </OAuthWrapper>

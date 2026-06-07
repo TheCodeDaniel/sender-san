@@ -1,7 +1,6 @@
 import { useState, useEffect, useRef } from 'react'
 import { useProfile } from '../context/ProfileContext.jsx'
 import { getCompanies, getMission, getMeta, setMeta, getKeys, setKeys as saveKeys, updateCompany, updateContact, addHistoryEntry } from '../db/indexeddb.js'
-import { NavBar } from './Dashboard.jsx'
 import EmailPreview from '../components/EmailPreview.jsx'
 import Button from '../components/ui/Button.jsx'
 import Tag from '../components/ui/Tag.jsx'
@@ -177,16 +176,14 @@ export default function Send() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
+      <div className="flex items-center justify-center py-32">
         <Spinner size="lg" />
       </div>
     )
   }
 
   return (
-    <div className="min-h-screen bg-background">
-      <NavBar />
-      <main className="max-w-4xl mx-auto px-4 py-8">
+    <main className="max-w-4xl mx-auto px-6 py-8">
         <div className="relative mb-6">
           <div className="kanji-watermark" style={{ top: '-3rem', left: '-2rem' }}>送信</div>
           <h1 className="text-2xl font-semibold text-text-primary">Daily Send 送信</h1>
@@ -290,7 +287,6 @@ export default function Send() {
         >
           {sending ? <span className="flex items-center gap-2"><Spinner size="sm" /> Sending…</span> : 'Send Today\'s Batch 送信'}
         </Button>
-      </main>
-    </div>
+    </main>
   )
 }
